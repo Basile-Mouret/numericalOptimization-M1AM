@@ -6,7 +6,12 @@ def f(x):
     return (x[0]**2 + x[1] - 11)**2 + (x[0] + x[1]**2 - 7)**2
 
 
-### TO DO: IMPLEMENT FIRST-ORDER AND SECOND-ORDER oracles
+def grad_f(x):
+    return np.array([4*x[0]*(x[0]*x[0] + x[1] - 11) + 2*(x[0]+x[1]*x[1]-7),
+                     2*(x[0]*x[0] + x[1] - 11 + 4*x[1]*(x[0]+x[1]*x[1]-7))])
+
+def hessian_f(x):
+    return np.array([[12*x[0]*x[0]+ 4*x[1]-42, 4*(x[0]-x[1])],[4*(x[0]+x[1]), 4*x[0]+12*x[1]*x[1]-26]])
 
 
 # useful constants for plotting

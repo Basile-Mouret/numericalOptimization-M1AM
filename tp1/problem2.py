@@ -8,6 +8,11 @@ def f(x):
 
 
 ### TO DO: IMPLEMENT FIRST-ORDER AND SECOND-ORDER oracles
+def grad_f(x):
+    return np.array([-400*x[0]*(x[1]-x[0]*x[0])-2*(1-x[0]), 200*(x[1]-x[0]*x[0])])
+
+def hessian_f(x):
+    return np.array([[-400*(x[1]-x[0]*x[0])+800*x[0]*x[0]*(x[1]-x[0]*x[0])+2, -400*x[0]], [400*x[0], 200]])
 
 
 # useful constants for plotting
