@@ -131,8 +131,11 @@ def bfgs(f , f_grad , x_init , prec , iterMax ):
 
         x_new = x - tau*d
         g_new = f_grad(x_new)
+        s = -tau*d
+        y = g_new-g
 
         # TO DO: UPDATE THE MATRIX W
+        W = (I-np.outer(s,y)/np.inner(y,s)) @ W @ (I-np.outer(y,s)/np.inner(y,s)) + np.outer(s,s)/np.inner(y,s)
         
         x = x_new
         g = g_new
@@ -151,3 +154,28 @@ def bfgs(f , f_grad , x_init , prec , iterMax ):
 
 
 
+def newton_ls(f , f_grad_hessian , x_init , prec , iterMax ):
+    x = np.copy(x_init)
+    g,H = f_grad_hessian(x_init)
+    epsilon = prec*np.linalg.norm(g)
+
+    x_tab = np.copy(x)
+    print("------------------------------------\nNewton's algorithm\n------------------------------------\nSTART")
+    t_s =  timeit.default_timer()
+    for k in range(iterMax):
+
+        g,H = f_grad_hessian(x)
+        dir = -np.linalg.solve(H,g)
+
+        res = line_search(f, lambda x : f_grad_hessian(x)[0], x, dir, gfk=None, old_fval=None, old_old_fval=None, args=(), c1=0.0001, c2=0.9, amax=50)
+        tau = res[0]
+        x = x + tau*dir   
+
+        x_tab = np.vstack((x_tab,x))
+
+        if np.linalg.norm(g) < epsilon:
+            break
+
+    t_e =  timeit.default_timer()
+    print("FINISHED -- {:d} iterations -- {:.6f}s -- final value: {:f} -- final gradient norm: {:f} \n\n".format(k,t_e-t_s,f(x),np.linalg.norm(g)))
+    return x,x_tab
