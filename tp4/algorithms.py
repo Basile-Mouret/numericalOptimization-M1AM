@@ -81,7 +81,12 @@ def GD_accelerated(f, grad_f, x_init, tau, iterMax, prec, c=0.5):
 
     for k in range(iterMax):
 
-        ### TO BE COMPLETED
+        g = grad_f(y)
+        x_new = y - tau * g
+        lmbd_new = (1 + np.sqrt(1 + 4 * lmbd**2)) / 2
+        y = x_new + (lmbd - 1) / lmbd_new * (x_new - x)
+        x = x_new
+        lmbd = lmbd_new
 
         x_tab = np.vstack((x_tab,x))
 
@@ -110,7 +115,14 @@ def CG_quadratic(A, b, f, grad_f, x_init, iterMax, prec):
 
     for k in range(iterMax):
 
-        ### TO BE COMPLETED
+        tau_k = (r @ d) / (d @ (A @ d))
+        x = x + tau_k * d
+        r_new = -(A @ x + b)
+        beta_k = (r_new @ r_new) / (r @ r)
+        d = r_new + beta_k * d
+        r = r_new
+
+        x_tab = np.vstack((x_tab, x))
 
         if np.linalg.norm(grad_f(x)) < epsilon:
             break
@@ -138,7 +150,18 @@ def CG_nonLinear(f, grad_f, x_init, iterMax, prec, tau0, rho, c):
 
     for k in range(iterMax):
 
-        ### TO BE COMPLETED
+        # Armijo backtracking line search along direction d
+        tau = tau0
+        while f(x + tau * d) > f(x) + c * tau * (grad_f(x) @ d):
+            tau = rho * tau
+
+        x = x + tau * d
+        r_new = -grad_f(x)
+        beta_k = max((r_new @ (r_new - r)) / (r @ r), 0.0)
+        d = r_new + beta_k * d
+        r = r_new
+
+        x_tab = np.vstack((x_tab, x))
 
         if np.linalg.norm(grad_f(x)) < epsilon:
             break
