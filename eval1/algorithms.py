@@ -1,0 +1,259 @@
+import numpy as np
+import timeit
+
+
+
+from scipy.optimize import line_search
+
+def GD(f, f_grad, x_init, tau, iterMax, prec):
+
+    epsilon = prec*np.linalg.norm(f_grad(x_init))
+
+    x = np.copy(x_init)
+    x_tab = np.copy(x_init)
+
+
+    print("------------------------------------\n GD with constant step size\n------------------------------------\nSTART")
+    t_s =  timeit.default_timer()
+
+    for k in range(iterMax):
+
+        g = f_grad(x)
+        x = x - tau*g
+
+        x_tab = np.vstack((x_tab,x))
+
+        if np.linalg.norm(g) < epsilon:
+            break
+
+    t_e =  timeit.default_timer()
+    print("FINISHED -- {:d} iterations -- {:.6f}s -- final value: {:f} -- final gradient norm: {:f} \n\n".format(k,t_e-t_s,f(x),np.linalg.norm(f_grad(x))))
+    
+    return x,x_tab
+
+def GD_wolfe(f , f_grad , x_init , prec, iterMax):
+    
+    x = np.copy(x_init)
+    epsilon = prec*np.linalg.norm(f_grad(x_init) )
+    x_tab = np.copy(x)
+
+    print("------------------------------------\n Gradient with Wolfe line search\n------------------------------------\nSTART")
+    t_s =  timeit.default_timer()
+
+    for k in range(iterMax):
+        g = f_grad(x)
+
+        res = line_search(f, f_grad, x, -g, gfk=None, old_fval=None, old_old_fval=None, args=(), c1=0.0001, c2=0.9, amax=50)
+        tau = res[0]
+
+
+        x = x - tau*g 
+
+        x_tab = np.vstack((x_tab,x))
+
+        if np.linalg.norm(g) < epsilon:
+            break
+
+    t_e =  timeit.default_timer()
+    print("FINISHED -- {:d} iterations -- {:.6f}s -- final value: {:f} -- final gradient norm: {:f} \n\n".format(k,t_e-t_s,f(x),np.linalg.norm(f_grad(x))))
+    
+    return x,x_tab
+
+def newton(f , f_grad_hessian , x_init , prec , iterMax ):
+    x = np.copy(x_init)
+    g,H = f_grad_hessian(x_init)
+    epsilon = prec*np.linalg.norm(g)
+
+    x_tab = np.copy(x)
+    print("------------------------------------\nNewton's algorithm\n------------------------------------\nSTART")
+    t_s =  timeit.default_timer()
+    for k in range(iterMax):
+
+        g,H = f_grad_hessian(x)
+        x = x - np.linalg.solve(H,g)  
+
+        x_tab = np.vstack((x_tab,x))
+
+        if np.linalg.norm(g) < epsilon:
+            break
+
+    t_e =  timeit.default_timer()
+    print("FINISHED -- {:d} iterations -- {:.6f}s -- final value: {:f} -- final gradient norm: {:f} \n\n".format(k,t_e-t_s,f(x),np.linalg.norm(g)))
+    return x,x_tab
+
+
+def bfgs(f , f_grad , x_init , prec , iterMax ):
+
+    x = np.copy(x_init)
+    g = f_grad(x_init)
+    epsilon = prec*np.linalg.norm(g)
+
+    I = np.eye(len(x))
+    W = np.copy(I)
+
+    x_tab = np.copy(x)
+    print("------------------------------------\nBFGS algorithm\n------------------------------------\nSTART")
+    t_s =  timeit.default_timer()
+
+    for k in range(iterMax):
+
+        d = W@g
+
+        res = line_search(f, f_grad, x, -d, gfk=None, old_fval=None, old_old_fval=None, args=(), c1=0.0001, c2=0.9, amax=50)
+        tau = res[0]
+
+        x_new = x - tau*d
+        g_new = f_grad(x_new)
+        s = -tau*d
+        y = g_new-g
+
+        # TO DO: UPDATE THE MATRIX W
+        W = (I-np.outer(s,y)/np.inner(y,s)) @ W @ (I-np.outer(y,s)/np.inner(y,s)) + np.outer(s,s)/np.inner(y,s)
+        
+        x = x_new
+        g = g_new
+
+
+        x_tab = np.vstack((x_tab,x))
+
+        if np.linalg.norm(g) < epsilon:
+            break
+
+    t_e =  timeit.default_timer()
+    print("FINISHED -- {:d} iterations -- {:.6f}s -- final value: {:f} -- final gradient norm: {:f} \n\n".format(k,t_e-t_s,f(x),np.linalg.norm(g)))
+    return x,x_tab
+
+def newton_ls(f , f_grad_hessian , x_init , prec , iterMax ):
+    """ Newton with Wolfe line search"""
+    x = np.copy(x_init)
+    g,H = f_grad_hessian(x_init)
+    epsilon = prec*np.linalg.norm(g)
+
+    x_tab = np.copy(x)
+    print("------------------------------------\nNewton's algorithm\n------------------------------------\nSTART")
+    t_s =  timeit.default_timer()
+    for k in range(iterMax):
+
+        g,H = f_grad_hessian(x)
+        dir = -np.linalg.solve(H,g)
+
+        res = line_search(f, lambda x : f_grad_hessian(x)[0], x, dir, gfk=None, old_fval=None, old_old_fval=None, args=(), c1=0.0001, c2=0.9, amax=50)
+        tau = res[0]
+        x = x + tau*dir   
+
+        x_tab = np.vstack((x_tab,x))
+
+        if np.linalg.norm(g) < epsilon:
+            break
+
+    t_e =  timeit.default_timer()
+    print("FINISHED -- {:d} iterations -- {:.6f}s -- final value: {:f} -- final gradient norm: {:f} \n\n".format(k,t_e-t_s,f(x),np.linalg.norm(g)))
+    return x,x_tab
+
+def GD_accelerated(f, grad_f, x_init, tau, iterMax, prec, c=0.5):
+
+    epsilon = prec*np.linalg.norm(grad_f(x_init))
+
+    x = np.copy(x_init)
+    x_tab = np.copy(x_init)
+
+    y = np.copy(x_init)
+    lmbd = 0.0
+
+
+    print("------------------------------------\n Accelerated GD with constant step size\n------------------------------------\nSTART")
+    t_s =  timeit.default_timer()
+
+    for k in range(iterMax):
+
+        g = grad_f(y)
+        x_new = y - tau * g
+        lmbd_new = (1 + np.sqrt(1 + 4 * lmbd**2)) / 2
+        y = x_new + (lmbd - 1) / lmbd_new * (x_new - x)
+        x = x_new
+        lmbd = lmbd_new
+
+        x_tab = np.vstack((x_tab,x))
+
+        if np.linalg.norm(g) < epsilon:
+            break
+
+    t_e =  timeit.default_timer()
+    print("FINISHED -- {:d} iterations -- {:.6f}s -- final value: {:f} -- final gradient norm: {:f} \n\n".format(k,t_e-t_s,f(x),np.linalg.norm(grad_f(x))))
+    
+    return x,x_tab
+
+
+
+def CG_quadratic(A, b, f, grad_f, x_init, iterMax, prec):
+
+    epsilon = prec*np.linalg.norm(grad_f(x_init))
+
+    x = np.copy(x_init)
+    x_tab = np.copy(x_init)
+
+    r = -(A@x + b)
+    d = r
+
+    print("------------------------------------\n CG for quadratic objective \n------------------------------------\nSTART")
+    t_s =  timeit.default_timer()
+
+    for k in range(iterMax):
+
+        tau_k = (r @ d) / (d @ (A @ d))
+        x = x + tau_k * d
+        r_new = -(A @ x + b)
+        beta_k = (r_new @ r_new) / (r @ r)
+        d = r_new + beta_k * d
+        r = r_new
+
+        x_tab = np.vstack((x_tab, x))
+
+        if np.linalg.norm(grad_f(x)) < epsilon:
+            break
+
+
+    t_e =  timeit.default_timer()
+    print("FINISHED -- {:d} iterations -- {:.6f}s -- final value: {:f} -- final gradient norm: {:f} \n\n".format(k,t_e-t_s,f(x),np.linalg.norm(grad_f(x))))
+    
+    return x,x_tab
+
+
+
+def CG_nonLinear(f, grad_f, x_init, iterMax, prec, tau0, rho, c):
+
+    epsilon = prec*np.linalg.norm(grad_f(x_init))
+
+    x = np.copy(x_init)
+    x_tab = np.copy(x_init)
+
+    r = -grad_f(x)
+    d = r
+
+    print("------------------------------------\n CG for quadratic objective \n------------------------------------\nSTART")
+    t_s =  timeit.default_timer()
+
+    for k in range(iterMax):
+
+        # Armijo backtracking line search along direction d
+        tau = tau0
+        while f(x + tau * d) > f(x) + c * tau * (grad_f(x) @ d):
+            tau = rho * tau
+
+        x = x + tau * d
+        r_new = -grad_f(x)
+        beta_k = max((r_new @ (r_new - r)) / (r @ r), 0.0)
+        d = r_new + beta_k * d
+        r = r_new
+
+        x_tab = np.vstack((x_tab, x))
+
+        if np.linalg.norm(grad_f(x)) < epsilon:
+            break
+
+
+    t_e =  timeit.default_timer()
+    print("FINISHED -- {:d} iterations -- {:.6f}s -- final value: {:f} -- final gradient norm: {:f} \n\n".format(k,t_e-t_s,f(x),np.linalg.norm(grad_f(x))))
+    
+    return x,x_tab
+
