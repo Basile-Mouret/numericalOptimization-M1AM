@@ -1,6 +1,7 @@
 import numpy as np
 import csv
 from sklearn import preprocessing
+import random
 
 #### File reading
 dat_file = np.load('student.npz')
@@ -65,9 +66,21 @@ def grad_f(x):
 
 
 def grad_f_subsampling(x):
-    
-    # TO BE COMPLETED
+    g = np.zeros(n)
+    i = random.randint(0,A.shape[0]-1)
+    if b[i] > 0:
+        g += -A[i]/( 1 + np.exp(np.dot( A[i] , x ) ) ) 
+    else:
+        g += A[i]/( 1 + np.exp(-np.dot( A[i] , x ) ) ) 
+    return g/m + lam*x
 
+def grad_f_i(x,i):
+    g = np.zeros(n)
+    if b[i] > 0:
+        g += -A[i]/( 1 + np.exp(np.dot( A[i] , x ) ) ) 
+    else:
+        g += A[i]/( 1 + np.exp(-np.dot( A[i] , x ) ) ) 
+    return g/m + lam*x
 
 
 # ## Prediction Function
