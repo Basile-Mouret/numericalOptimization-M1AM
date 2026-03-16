@@ -66,21 +66,15 @@ def grad_f(x):
 
 
 def grad_f_subsampling(x):
-    g = np.zeros(n)
     i = random.randint(0,A.shape[0]-1)
-    if b[i] > 0:
-        g += -A[i]/( 1 + np.exp(np.dot( A[i] , x ) ) ) 
-    else:
-        g += A[i]/( 1 + np.exp(-np.dot( A[i] , x ) ) ) 
-    return g/m + lam*x
+    # Unbiased estimator of grad_f(x): sample one data term and keep full regularizer gradient.
+    g = -b[i] * A[i] / (1 + np.exp(b[i] * np.dot(A[i], x)))
+    return g + lam*x
 
 def grad_f_i(x,i):
-    g = np.zeros(n)
-    if b[i] > 0:
-        g += -A[i]/( 1 + np.exp(np.dot( A[i] , x ) ) ) 
-    else:
-        g += A[i]/( 1 + np.exp(-np.dot( A[i] , x ) ) ) 
-    return g/m + lam*x
+    # Per-sample gradient used in SAGA memory table.
+    g = -b[i] * A[i] / (1 + np.exp(b[i] * np.dot(A[i], x)))
+    return g + lam*x
 
 
 # ## Prediction Function
