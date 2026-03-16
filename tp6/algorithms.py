@@ -78,15 +78,16 @@ def adagrad_norm(f, grad_f_subsampling, x_init, tau, b_sq, iterMax):
     x = np.copy(x_init)
     x_tab = np.copy(x)
     
-
-    ### TO BE COMPLETED
+    Gk=b_sq
 
     print("------------------------------------\n Adagrad-norm \n------------------------------------\nSTART")
     t_s =  timeit.default_timer()
 
     for k in range(iterMax):
 
-        ### TO BE COMPLETED
+        gk = grad_f_subsampling(x)
+        Gk += np.dot(gk,gk) 
+        x = x - (tau/np.sqrt(Gk))*gk
 
         x_tab = np.vstack((x_tab,x))
 
@@ -101,15 +102,18 @@ def adagrad_diag(f, grad_f_subsampling, x_init, tau, b_sq, iterMax):
     
     x = np.copy(x_init)
     x_tab = np.copy(x)
+    n = x_init.size
     
-    ### TO BE COMPLETED
+    Gk=b_sq*np.identity(n)
 
     print("------------------------------------\n Adagrad \n------------------------------------\nSTART")
     t_s =  timeit.default_timer()
 
     for k in range(iterMax):
 
-        ### TO BE COMPLETED
+        gk = grad_f_subsampling(x)
+        Gk += np.diag(gk*gk)
+        x = x - tau*np.linalg.inv(np.sqrt(Gk))@gk
 
         x_tab = np.vstack((x_tab,x))
 
@@ -124,16 +128,22 @@ def adam(f, grad_f_subsampling, x_init, tau, beta1, beta2, delta, iterMax):
     
     x = np.copy(x_init)
     x_tab = np.copy(x)
-
-    ### TO BE COMPLETED
+    n = x_init.size
+    
+    mk = np.zeros(n)
+    vk = np.zeros(n)
 
     print("------------------------------------\n Adam \n------------------------------------\nSTART")
     t_s =  timeit.default_timer()
 
     for k in range(iterMax):
 
-        ### TO BE COMPLETED
-
+        gk = grad_f_subsampling(x)
+        mk = beta1*mk + (1-beta1)*gk
+        vk = beta2*vk + (1-beta2)*gk*gk
+        mk_hat = mk/(1-beta1**(k+1))
+        vk_hat = vk/(1-beta2**(k+1))
+        x = x - tau*np.linalg.inv(np.sqrt(delta*np.identity(n)+np.diag(vk_hat)))@mk_hat
         x_tab = np.vstack((x_tab,x))
 
     t_e =  timeit.default_timer()
