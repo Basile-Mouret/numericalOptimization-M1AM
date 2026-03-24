@@ -14,11 +14,11 @@ def proj_GD(f, grad_f, proj, x_init, tau, iterMax, prec):
 
     for k in range(iterMax):
 
-        # TO BE COMPLETED
+        x = proj(x - tau*grad_f(x))
 
         x_tab = np.vstack((x_tab,x))
 
-        if ### TO BE COMPLETED
+        if np.linalg.norm(x_tab[-1] - x_tab[-2]) < epsilon:
             break
 
     t_e =  timeit.default_timer()

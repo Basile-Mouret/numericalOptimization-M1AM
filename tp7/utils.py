@@ -92,7 +92,7 @@ def plot_obj_normGrad(x_tab, f, grad_f, title):
     fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True)
     fig.suptitle(title)
 
-    ax1.semilogy([f(x_tab[k,:]) for k in range(x_tab.shape[0])])
+    ax1.plot([f(x_tab[k,:]) for k in range(x_tab.shape[0])])
     ax1.set_ylabel(r'$f(x_k)$')
 
     ax2.semilogy([np.linalg.norm(grad_f(x_tab[k,:])) for k in range(x_tab.shape[0])])

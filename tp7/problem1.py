@@ -21,6 +21,11 @@ def hessian_f(x):
 v = np.array([1.0, 0.0])
 w = -1.0
 
+def proj(x):
+    if np.inner(v,x)<=w:
+        return x
+    return x-((np.inner(v,x)-w)/np.inner(v,v)) * v
+
 # Some useful constants for plotting
 lb = -5.0
 ub = 5.0
