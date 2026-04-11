@@ -18,9 +18,10 @@ def prox_grad(F, grad_f, prox_g, x_init, tau, lambda1, iterMax, prec):
     t_s =  timeit.default_timer()
 
     for k in range(iterMax):
-
-        
-        ### TO BE COMPLETED
+        x = prox_g(x-tau*grad_f(x), tau, lambda1)
+        x_tab = np.vstack((x_tab,x))
+        if np.linalg.norm(x_tab[k]-x_tab[k+1]) < epsilon:
+            break
 
 
     t_e =  timeit.default_timer()
