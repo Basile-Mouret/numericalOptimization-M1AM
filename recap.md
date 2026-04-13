@@ -1,5 +1,3 @@
-### 🧠 Algorithm Cheat Sheet: What to use and when
-
 **1. Gradient Descent (GD) & Variants**
 *   **When to use:** Baseline for smooth optimization. Good for small/medium datasets.
 *   **Specificities:** Needs a step size. Without line-search, you guess the step size. Using a line search (Armijo/Wolfe) automates finding a good step. Accelerated GD (Momentum/Nesterov) speeds up convergence for ill-conditioned problems.
